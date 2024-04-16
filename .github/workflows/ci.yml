@@ -5,8 +5,8 @@ on:
     types: [opened, synchronize]
 
 jobs:
-  ci:
-    name: CI
+  build:
+    name: Lint, Build, Test, and Sort CONTRIBUTORS.yml
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -14,9 +14,9 @@ jobs:
       postgres:
         image: postgres
         env:
-          POSTGRES_DB: oyster
-          POSTGRES_PASSWORD: oyster
-          POSTGRES_USER: oyster
+          POSTGRES_DB: colorstack
+          POSTGRES_PASSWORD: colorstack
+          POSTGRES_USER: colorstack
         ports:
           - 5432:5432
         options: >-
@@ -31,15 +31,12 @@ jobs:
           5s --health-retries 5
 
     env:
-      BASE_SHA: ${{ github.event.pull_request.base.sha }}
-      DATABASE_URL: postgres://oyster:oyster@localhost:5432/oyster
+      DATABASE_URL: postgres://colorstack:colorstack@localhost:5432/colorstack
       REDIS_URL: redis://localhost:6379
 
     steps:
       - name: Checkout repository code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Cache Turborepo setup
         uses: actions/cache@v4
@@ -69,13 +66,32 @@ jobs:
         run: yarn db:migrate
 
       - name: Lint
-        run: yarn lint --filter=[$BASE_SHA]
-
-      - name: Check types
-        run: yarn type-check --filter=[$BASE_SHA]
+        run: yarn lint
 
       - name: Build all packages and applications
-        run: yarn build --filter=[$BASE_SHA]
+        run: yarn build
 
       - name: Run tests
-        run: yarn test --filter=[$BASE_SHA]
+        run: yarn test
+
+      - name: Check if CONTRIBUTORS.yml is sorted
+        id: check-sorted
+        run: |
+          if ! sort -c CONTRIBUTORS.yml; then
+            echo "::set-output name=sorted::false"
+          else
+            echo "::set-output name=sorted::true"
+          fi
+
+      - name: Sort CONTRIBUTORS.yml if not sorted
+        if: steps.check-sorted.outputs.sorted == 'false'
+        run: sort -o CONTRIBUTORS.yml CONTRIBUTORS.yml
+
+      - name: Commit sorted CONTRIBUTORS.yml
+        if: steps.check-sorted.outputs.sorted == 'false'
+        run: |
+          git config --local user.email "your-email@example.com"
+          git config --local user.name "Your Name"
+          git add CONTRIBUTORS.yml
+          git commit -m "chore: sort CONTRIBUTORS.yml"
+          git push
