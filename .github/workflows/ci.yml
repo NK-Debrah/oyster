@@ -79,3 +79,25 @@ jobs:
 
       - name: Run tests
         run: yarn test --filter=[$BASE_SHA]
+
+      - name: Check if CONTRIBUTORS.yml is sorted
+        id: check-sorted
+        run: |
+          if ! sort -c CONTRIBUTORS.yml; then
+            echo "::set-output name=sorted::false"
+          else
+            echo "::set-output name=sorted::true"
+          fi
+
+      - name: Sort CONTRIBUTORS.yml if not sorted
+        if: steps.check-sorted.outputs.sorted == 'false'
+        run: sort -o CONTRIBUTORS.yml CONTRIBUTORS.yml
+
+      - name: Commit sorted CONTRIBUTORS.yml
+        if: steps.check-sorted.outputs.sorted == 'false'
+        run: |
+          git config --global user.email "davidsalazar200@gmail.com"
+          git config --global user.name "DavidSalazar123"
+          git add CONTRIBUTORS.yml
+          git commit -m "chore: sort CONTRIBUTORS.yml"
+          git push origin HEAD:testing
