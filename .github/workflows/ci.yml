@@ -112,6 +112,7 @@ jobs:
         run: |
           git config --global user.email "davidsalazar200@gmail.com"
           git config --global user.name "DavidSalazar123"
+          git pull --rebase -Xours origin main
           git add CONTRIBUTORS.yml
           git commit -m "chore: sort CONTRIBUTORS.yml"
-          git push origin HEAD:testing
+          git push origin HEAD:main -f
