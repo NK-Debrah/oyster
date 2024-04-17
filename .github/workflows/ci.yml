@@ -10,6 +10,7 @@ on:
 jobs:
   ci:
     name: CI
+    if: github.event_name == 'pull_request'  # Ensure this job runs only on pull request events
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -38,9 +39,6 @@ jobs:
       DATABASE_URL: postgres://oyster:oyster@localhost:5432/oyster
       REDIS_URL: redis://localhost:6379
   
-  Testing:
-    if: github.event_name == 'pull_request'  # Ensure this job runs only on pull request events
-    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository code
         uses: actions/checkout@v4
@@ -87,6 +85,7 @@ jobs:
         run: yarn test --filter=[$BASE_SHA]
 
   Sorting_Contributors: 
+    name: Sorting Contributors 
     if: github.event_name == 'push'  # Ensure this job runs only on push events
     runs-on: ubuntu-latest
     steps:
