@@ -5,8 +5,8 @@ on:
     types: [opened, synchronize]
 
 jobs:
-  build:
-    name: Lint, Build, Test, and Sort CONTRIBUTORS.yml
+  ci:
+    name: CI
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -14,9 +14,9 @@ jobs:
       postgres:
         image: postgres
         env:
-          POSTGRES_DB: colorstack
-          POSTGRES_PASSWORD: colorstack
-          POSTGRES_USER: colorstack
+          POSTGRES_DB: oyster
+          POSTGRES_PASSWORD: oyster
+          POSTGRES_USER: oyster
         ports:
           - 5432:5432
         options: >-
@@ -31,12 +31,15 @@ jobs:
           5s --health-retries 5
 
     env:
-      DATABASE_URL: postgres://colorstack:colorstack@localhost:5432/colorstack
+      BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      DATABASE_URL: postgres://oyster:oyster@localhost:5432/oyster
       REDIS_URL: redis://localhost:6379
 
     steps:
       - name: Checkout repository code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Cache Turborepo setup
         uses: actions/cache@v4
@@ -66,13 +69,16 @@ jobs:
         run: yarn db:migrate
 
       - name: Lint
-        run: yarn lint
+        run: yarn lint --filter=[$BASE_SHA]
+
+      - name: Check types
+        run: yarn type-check --filter=[$BASE_SHA]
 
       - name: Build all packages and applications
-        run: yarn build
+        run: yarn build --filter=[$BASE_SHA]
 
       - name: Run tests
-        run: yarn test
+        run: yarn test --filter=[$BASE_SHA]
 
       - name: Check if CONTRIBUTORS.yml is sorted
         id: check-sorted
@@ -94,4 +100,4 @@ jobs:
           git config --global user.name "DavidSalazar123"
           git add CONTRIBUTORS.yml
           git commit -m "chore: sort CONTRIBUTORS.yml"
-          git push origin HEAD:main
+          git push origin HEAD:testing
