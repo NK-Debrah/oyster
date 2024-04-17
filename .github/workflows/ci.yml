@@ -89,6 +89,11 @@ jobs:
     if: github.event_name == 'push'  # Ensure this job runs only on push events
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Check if CONTRIBUTORS.yml is sorted
         id: check-sorted
         run: |
@@ -97,12 +102,10 @@ jobs:
           else
             echo "::set-output name=sorted::true"
           fi
-        working-directory: CONTRIBUTORS.yml
       
       - name: Sort CONTRIBUTORS.yml if not sorted
         if: steps.check-sorted.outputs.sorted == 'false'
         run: sort -o CONTRIBUTORS.yml CONTRIBUTORS.yml
-        working-directory: CONTRIBUTORS.yml
 
       - name: Commit sorted CONTRIBUTORS.yml
         if: steps.check-sorted.outputs.sorted == 'false'
@@ -112,4 +115,3 @@ jobs:
           git add CONTRIBUTORS.yml/
           git commit -m "chore: sort CONTRIBUTORS.yml"
           git push origin HEAD:testing
-        working-directory: CONTRIBUTORS.yml
