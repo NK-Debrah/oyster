@@ -97,12 +97,12 @@ jobs:
           else
             echo "::set-output name=sorted::true"
           fi
-        working-directory: ./CONTRIBUTORS.yml
+        working-directory: CONTRIBUTORS.yml
       
       - name: Sort CONTRIBUTORS.yml if not sorted
         if: steps.check-sorted.outputs.sorted == 'false'
         run: sort -o CONTRIBUTORS.yml CONTRIBUTORS.yml
-        working-directory: ./CONTRIBUTORS.yml
+        working-directory: CONTRIBUTORS.yml
 
       - name: Commit sorted CONTRIBUTORS.yml
         if: steps.check-sorted.outputs.sorted == 'false'
@@ -112,4 +112,4 @@ jobs:
           git add CONTRIBUTORS.yml/
           git commit -m "chore: sort CONTRIBUTORS.yml"
           git push origin HEAD:testing
-        working-directory: ./CONTRIBUTORS.yml
+        working-directory: CONTRIBUTORS.yml
