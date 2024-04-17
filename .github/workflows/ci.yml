@@ -97,7 +97,7 @@ jobs:
       - name: Check if CONTRIBUTORS.yml is sorted
         id: check-sorted
         run: |
-          if ! sort -c CONTRIBUTORS.yml; then
+          if ! sort -cf CONTRIBUTORS.yml; then
             echo "::set-output name=sorted::false"
           else
             echo "::set-output name=sorted::true"
@@ -105,7 +105,7 @@ jobs:
       
       - name: Sort CONTRIBUTORS.yml if not sorted
         if: steps.check-sorted.outputs.sorted == 'false'
-        run: sort -o CONTRIBUTORS.yml CONTRIBUTORS.yml
+        run: sort -f -o CONTRIBUTORS.yml CONTRIBUTORS.yml
 
       - name: Commit sorted CONTRIBUTORS.yml
         if: steps.check-sorted.outputs.sorted == 'false'
